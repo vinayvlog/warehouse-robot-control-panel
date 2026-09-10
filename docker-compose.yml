@@ -1,0 +1,25 @@
+services:
+  robot-server:
+    build: ./server
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+      TICK_RATE_HZ: 20
+      # Swap for: clean | typical_wifi | warehouse_rf | bad_cellular
+      NETWORK_PRESET: warehouse_rf
+    restart: unless-stopped
+
+  robot-client:
+    build:
+      context: ./client
+      args:
+        # The browser connects directly to the server container's exposed
+        # port on the host, not through the client container -- WebSocket
+        # traffic isn't proxied by nginx here to keep the setup simple.
+        VITE_ROBOT_WS_URL: ws://localhost:8080
+    ports:
+      - "5173:80"
+    depends_on:
+      - robot-server
+    restart: unless-stopped
